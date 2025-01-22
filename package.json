@@ -10,10 +10,21 @@
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.5.2",
-    "@cloudflare/workers-types": "^4.20241205.0",
-    "typescript": "^5.5.2",
+    "@cloudflare/vitest-pool-workers": "^0.5.41",
+    "@cloudflare/workers-types": "^4.20250121.0",
+    "typescript": "^5.7.3",
     "vitest": "2.1.8",
-    "wrangler": "^3.60.3"
+    "wrangler": "^3.103.2"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.4.2",
+    "@resvg/resvg-js": "^2.6.2",
+    "@resvg/resvg-wasm": "^2.6.2",
+    "hono": "^4.6.17",
+    "octokit": "^4.1.0",
+    "react": "^19.0.0",
+    "satori": "^0.12.1",
+    "satori-html": "^0.3.2",
+    "zod": "^3.24.1"
   }
 }
