@@ -1,15 +1,14 @@
 import satori from 'satori';
 import { OPEN_GRAPH_IMAGE_DIMENSIONS, TWITTER_IMAGE_DIMENSIONS } from '../constants/protocols';
-import createMarkup from '../layouts/createMarkup.jsx';
 import { FontVariantSchema, GoogleFontsResponseBodySchema } from '../schemas/fonts';
 import { ProtocolSchema } from '../schemas/http';
-import { ReactNode, SatoriOptions } from 'satori';
+import { SatoriOptions } from 'satori';
 import MyError from '../types/MyError';
 import { QueryParametersSchema } from '../schemas/queryParameters';
 
-export default async function (apiKey: string, queryParameters: object): Promise<string> {
+export default async function (markup, googleFontsApiKey: string, queryParameters: Record<string, string>): Promise<string> {
 	const { fontFamily, fontVariant, protocol } = QueryParametersSchema.parse(queryParameters);
-	const fontFamiliesResponse = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${apiKey}`);
+	const fontFamiliesResponse = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${googleFontsApiKey}`);
 	if (!fontFamiliesResponse.ok) {
 		throw new MyError('Failed to fetch Google Fonts', 500);
 	}
@@ -32,8 +31,6 @@ export default async function (apiKey: string, queryParameters: object): Promise
 	}
 
 	const fontData = await font.arrayBuffer();
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-	const markup = (await createMarkup(fontData, fontFamily)) as ReactNode;
 	return await satori(markup, {
 		...(ProtocolSchema.parse(protocol) === 'og' ? OPEN_GRAPH_IMAGE_DIMENSIONS : TWITTER_IMAGE_DIMENSIONS),
 		fonts: [
