@@ -4,23 +4,21 @@ import createMarkup from '../layouts/createMarkup.jsx';
 import { FontVariantSchema, GoogleFontsResponseBodySchema } from '../schemas/fonts';
 import { ProtocolSchema } from '../schemas/http';
 import { ReactNode, SatoriOptions } from 'satori';
+import MyError from '../types/MyError';
+import { QueryParametersSchema } from '../schemas/queryParameters';
 
-export default async function (
-	apiKey: string,
-	fontFamily: string,
-	fontVariant: z.infer<typeof FontVariantSchema>,
-	protocol: z.infer<typeof ProtocolSchema>
-): Promise<string> {
+export default async function (apiKey: string, queryParameters: object): Promise<string> {
+	const { fontFamily, fontVariant, protocol } = QueryParametersSchema.parse(queryParameters);
 	const fontFamiliesResponse = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${apiKey}`);
 	if (!fontFamiliesResponse.ok) {
-		throw new Error('Failed to fetch Google Fonts');
+		throw new MyError('Failed to fetch Google Fonts', 500);
 	}
 
 	const { items } = GoogleFontsResponseBodySchema.parse(await fontFamiliesResponse.json());
 
 	const myItem = items.find((item) => item.family === fontFamily);
 	if (myItem === undefined) {
-		throw new Error(`Font family "${fontFamily}" not found`);
+		throw new MyError(`Font family "${fontFamily}" not found`, 404);
 	}
 
 	const fontFile: string = myItem.files[FontVariantSchema.parse(fontVariant)];
@@ -30,14 +28,14 @@ export default async function (
 
 	const font = await fetch(fontFile);
 	if (!font.ok) {
-		throw new Error(`Failed to fetch font file: ${fontFile}`);
+		throw new MyError(`Failed to fetch font file: ${fontFile}`, 500);
 	}
 
 	const fontData = await font.arrayBuffer();
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 	const markup = (await createMarkup(fontData, fontFamily)) as ReactNode;
 	return await satori(markup, {
-		...(protocol === 'Open Graph' ? OPEN_GRAPH_IMAGE_DIMENSIONS : TWITTER_IMAGE_DIMENSIONS),
+		...(ProtocolSchema.parse(protocol) === 'og' ? OPEN_GRAPH_IMAGE_DIMENSIONS : TWITTER_IMAGE_DIMENSIONS),
 		fonts: [
 			{
 				name: fontFamily,
