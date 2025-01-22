@@ -3,21 +3,22 @@ import { OPEN_GRAPH_IMAGE_DIMENSIONS, TWITTER_IMAGE_DIMENSIONS } from '../consta
 import { FontVariantSchema, GoogleFontsResponseBodySchema } from '../schemas/fonts';
 import { ProtocolSchema } from '../schemas/http';
 import { SatoriOptions } from 'satori';
-import MyError from '../types/MyError';
 import { QueryParametersSchema } from '../schemas/queryParameters';
+import { HTTPException } from 'hono/http-exception';
 
-export default async function (markup, googleFontsApiKey: string, queryParameters: Record<string, string>): Promise<string> {
+export default async function (markup, googleFontsApiKey: string, queryParameters: z.infer<typeof QueryParametersSchema>): Promise<string> {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const { fontFamily, fontVariant, protocol } = QueryParametersSchema.parse(queryParameters);
 	const fontFamiliesResponse = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${googleFontsApiKey}`);
 	if (!fontFamiliesResponse.ok) {
-		throw new MyError('Failed to fetch Google Fonts', 500);
+		throw new HTTPException(500, { message: 'Failed to fetch font list' });
 	}
 
 	const { items } = GoogleFontsResponseBodySchema.parse(await fontFamiliesResponse.json());
 
 	const myItem = items.find((item) => item.family === fontFamily);
 	if (myItem === undefined) {
-		throw new MyError(`Font family "${fontFamily}" not found`, 404);
+		throw new HTTPException(404, { message: `No "${fontFamily}" not found` });
 	}
 
 	const fontFile: string = myItem.files[FontVariantSchema.parse(fontVariant)];
@@ -27,7 +28,10 @@ export default async function (markup, googleFontsApiKey: string, queryParameter
 
 	const font = await fetch(fontFile);
 	if (!font.ok) {
-		throw new MyError(`Failed to fetch font file: ${fontFile}`, 500);
+		throw new HTTPException(500, {
+			message: `Failed to fetch font file for fontFamily: "${fontFamily}" and fontVariant: "${fontVariant}"
+      `,
+		});
 	}
 
 	const fontData = await font.arrayBuffer();
