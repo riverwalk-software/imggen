@@ -1,6 +1,6 @@
 import satori from 'satori';
 
-export default function createMarkup(fontData, fontFamily) {
+export default function (fontData, fontFamily) {
 	return (
 		<div
 			style={{
