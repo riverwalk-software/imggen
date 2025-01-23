@@ -1,11 +1,14 @@
 import { z } from 'zod';
-import { LayoutSchema } from './layouts';
+import ConfigurationSchema from './ConfigurationSchema';
 import { FontVariantSchema } from './fonts';
-import { ProtocolSchema } from './protocol';
+import { layoutKeys } from './layouts';
 
-export const QueryParametersSchema = z.object({
-	fontFamily: z.string(),
-	fontVariant: FontVariantSchema,
-	protocol: ProtocolSchema,
-	layout: LayoutSchema,
-});
+export const QueryParametersSchema = z
+	.object({
+		configuration: ConfigurationSchema,
+		fontFamily: z.string(),
+		fontVariant: FontVariantSchema,
+		layout: layoutKeys,
+		layoutIndex: z.coerce.number().int().positive(),
+	})
+	.passthrough();

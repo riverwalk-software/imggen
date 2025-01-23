@@ -1,7 +1,6 @@
 import satori from 'satori';
-import { OPEN_GRAPH_IMAGE_DIMENSIONS, TWITTER_IMAGE_DIMENSIONS } from '../constants/protocols';
 import { FontVariantSchema, GoogleFontsResponseBodySchema } from '../schemas/fonts';
-import { ProtocolSchema } from '../schemas/protocol';
+import { ConfigurationSchema } from '../schemas/ConfigurationSchema';
 import { SatoriOptions } from 'satori';
 import { HTTPException } from 'hono/http-exception';
 
@@ -41,7 +40,7 @@ export default async function (
 	const fontData = await font.arrayBuffer();
 
 	return await satori(markup, {
-		...(ProtocolSchema.parse(protocol) === 'og' ? OPEN_GRAPH_IMAGE_DIMENSIONS : TWITTER_IMAGE_DIMENSIONS),
+		// ...protocolToImageDimensions(ConfigurationSchema.parse(protocol)),
 		fonts: [
 			{
 				name: fontFamily,

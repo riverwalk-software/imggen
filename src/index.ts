@@ -1,28 +1,35 @@
 import { Hono } from 'hono';
 import { initWasm } from '@resvg/resvg-wasm';
 import wasmModule from './binaries/resvg.wasm';
-import markupToVector from './utils/markupToVector';
-import vectorToRaster from './utils/vectorToRaster';
+import markupToVector from './lib/markupToVector';
+import vectorToRaster from './lib/vectorToRaster';
 import { z } from 'zod';
-import createMarkup from './layouts/createMarkup.jsx';
-import { ReactNode } from 'satori';
+import createMarkup from './lib/createMarkup.js';
 import { zValidator } from '@hono/zod-validator';
 import { QueryParametersSchema } from './schemas/queryParameters';
 import { HTTPException } from 'hono/http-exception';
-import { layoutRecord } from './utils/layoutRecord';
+import { LayoutSchema } from './schemas/layouts';
 
 const app = new Hono<{ Bindings: Bindings }>();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 await initWasm(wasmModule);
 
 app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
-	const { fontFamily, fontVariant, layout, protocol } = c.req.valid('query');
-	const queryParameters = c.req.query();
-	const SelectedLayoutSchema = layoutRecord.get(layout);
-	const parsedQueryParamaters = SelectedLayoutSchema.parse(queryParameters);
+	const queryParameters = c.req.valid('query');
+	const { configuration, fontFamily, fontVariant, layout, layoutIndex } = queryParameters;
+	console.log(
+		LayoutSchema.parse({
+			discriminator: 'video2',
+			schema: {
+				authorName: 'explanation',
+			},
+		})
+	);
+	return c.text('Hello World');
+	// const parsedQueryParamaters = LayoutSchema.parse(queryParameters);
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-	const markup = (await createMarkup(layout, parsedQueryParamaters)) as ReactNode;
-	const vector = await markupToVector(markup, c.env.GOOGLE_FONTS, fontFamily, fontVariant, protocol);
+	const markup = createMarkup(layout, parsedQueryParamaters);
+	const vector = await markupToVector(markup, c.env.GOOGLE_FONTS, fontFamily, fontVariant, configuration);
 	const raster = vectorToRaster(vector);
 	return c.body(raster, 200, {
 		'Content-Type': 'image/png',
