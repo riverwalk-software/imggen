@@ -5,7 +5,7 @@ export const layoutKeys = z.enum(['article', 'video']);
 const ArticleLayoutSchemas = [
 	z.object({
 		discriminator: z.literal(`${layoutKeys.enum.article}1`),
-		schema: z
+		data: z
 			.object({
 				authorImage: z.string().url(),
 				authorName: z.string(),
@@ -24,7 +24,7 @@ const ArticleLayoutSchemas = [
 const VideoLayoutSchemas = [
 	z.object({
 		discriminator: z.literal(`${layoutKeys.enum.video}1`),
-		schema: z
+		data: z
 			.object({
 				videoTitle: z.string(),
 			})
@@ -32,7 +32,7 @@ const VideoLayoutSchemas = [
 	}),
 	z.object({
 		discriminator: z.literal(`${layoutKeys.enum.video}2`),
-		schema: z
+		data: z
 			.object({
 				authorName: z.string(),
 			})

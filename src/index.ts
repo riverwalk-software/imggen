@@ -17,19 +17,13 @@ await initWasm(wasmModule);
 app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
 	const queryParameters = c.req.valid('query');
 	const { configuration, fontFamily, fontVariant, layout, layoutIndex } = queryParameters;
-	console.log(
-		LayoutSchema.parse({
-			discriminator: 'video2',
-			schema: {
-				authorName: 'explanation',
-			},
-		})
-	);
-	return c.text('Hello World');
-	// const parsedQueryParamaters = LayoutSchema.parse(queryParameters);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+	const parsedQueryParamaters = LayoutSchema.parse({
+		discriminator: `${layout}${layoutIndex.toString()}`,
+		data: queryParameters,
+	});
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const markup = createMarkup(layout, parsedQueryParamaters);
-	const vector = await markupToVector(markup, c.env.GOOGLE_FONTS, fontFamily, fontVariant, configuration);
+	const vector = await markupToVector(configuration, fontFamily, fontVariant, c.env.GOOGLE_FONTS, markup);
 	const raster = vectorToRaster(vector);
 	return c.body(raster, 200, {
 		'Content-Type': 'image/png',

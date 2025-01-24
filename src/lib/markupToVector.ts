@@ -1,15 +1,15 @@
 import satori from 'satori';
 import { FontVariantSchema, GoogleFontsResponseBodySchema } from '../schemas/fonts';
-import { ConfigurationSchema } from '../schemas/ConfigurationSchema';
+import { configurationToImageResolution, ConfigurationSchema } from '../schemas/configuration';
 import { SatoriOptions } from 'satori';
 import { HTTPException } from 'hono/http-exception';
 
 export default async function (
-	markup: ReactNode,
-	googleFontsApiKey: string,
+	configuration: string,
 	fontFamily: string,
 	fontVariant: string,
-	protocol: string
+	googleFontsApiKey: string,
+	markup: ReactNode
 ): Promise<string> {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const fontFamiliesResponse = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${googleFontsApiKey}`);
@@ -40,7 +40,7 @@ export default async function (
 	const fontData = await font.arrayBuffer();
 
 	return await satori(markup, {
-		// ...protocolToImageDimensions(ConfigurationSchema.parse(protocol)),
+		...configurationToImageResolution(ConfigurationSchema.parse(configuration)),
 		fonts: [
 			{
 				name: fontFamily,

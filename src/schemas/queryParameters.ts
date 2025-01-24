@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import ConfigurationSchema from './ConfigurationSchema';
+import { ConfigurationSchema } from './configuration';
 import { FontVariantSchema } from './fonts';
 import { layoutKeys } from './layouts';
 
