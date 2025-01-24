@@ -5,7 +5,7 @@ import { z } from 'zod';
 export default ({
 	authorImage,
 	authorName,
-	logo,
+	// logo,
 	metadata1,
 	metadata2,
 	metadata3,
