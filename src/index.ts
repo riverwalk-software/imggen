@@ -27,6 +27,7 @@ app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
   const raster = vectorToRaster(vector);
   return c.body(raster, 200, {
     'Content-Type': 'image/png',
+    'Access-Control-Allow-Origin': '*',
   });
 });
 
