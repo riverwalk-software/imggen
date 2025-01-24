@@ -10,6 +10,20 @@ const buildMetadata = (metadata1: string | undefined, metadata2: string | undefi
   return [metadata1, metadata2, metadata3].filter((metadata) => metadata !== undefined).join(' • ');
 }
 
+const logoOnly = (
+  authorImage: string | undefined,
+  authorName: string | undefined,
+  metadata1: string | undefined,
+  metadata2: string | undefined,
+  metadata3: string | undefined,
+  tag1: string | undefined,
+  tag2: string | undefined,
+  tag3: string | undefined,
+  title: string | undefined
+) => {
+  return !authorImage && !authorName && !metadata1 && !metadata2 && !metadata3 && !tag1 && !tag2 && !tag3 && !title;
+};
+
 export default ({
   authorImage,
   authorName,
@@ -150,7 +164,7 @@ export default ({
       <use href="#ai:local:companies/rock-the-jvm"></use>{' '}
     </svg>
 
-    <div
+    {!logoOnly(authorImage, authorName, metadata1, metadata2, metadata3, tag1, tag2, tag3, title) && <div
       style={{
         height: '100%',
         width: '50%',
@@ -169,10 +183,10 @@ export default ({
           alignItems: 'center',
         }}
       >
-        <img style={{ width: '4em' }} src={authorImage} />
-        <span style={{ fontSize: '20px' }}>{authorName}</span>
+        {authorImage && <img style={{ width: '4em' }} src={authorImage} />}
+        {authorName && <span style={{ fontSize: '20px' }}>{authorName}</span>}
       </div>
-      <div style={{ fontSize: 48, fontWeight: 600 }}>{title}</div>
+      {title && <div style={{ fontSize: 48, fontWeight: 600 }}>{title}</div>}
       {buildMetadata(metadata1, metadata2, metadata3) && <div
         style={{
           fontSize: 20,
@@ -193,6 +207,6 @@ export default ({
         {tag2 && tag2 !== "" && <div style={{ backgroundColor: '#e0e8ff', padding: '5px 10px 5px 10px', borderRadius: '15px' }}>{tag2}</div>}
         {tag3 && tag3 !== "" && <div style={{ backgroundColor: '#e0e8ff', padding: '5px 10px 5px 10px', borderRadius: '15px' }}>{tag3}</div>}
       </div>
-    </div>
+    </div>}
   </div>
 );
