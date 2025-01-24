@@ -31,6 +31,23 @@ app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
   });
 });
 
+app.get('/jpg', zValidator('query', QueryParametersSchema), async (c) => {
+  const queryParameters = c.req.valid('query');
+  const { configuration, fontFamily, fontVariant, layout, layoutIndex } = queryParameters;
+  const parsedQueryParamaters = LayoutSchema.parse({
+    discriminator: `${layout}${layoutIndex.toString()}`,
+    data: queryParameters,
+  });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const markup = createMarkup(parsedQueryParamaters);
+  const vector = await markupToVector(configuration, fontFamily, fontVariant, c.env.GOOGLE_FONTS, markup);
+  const raster = vectorToRaster(vector);
+  return c.body(raster, 200, {
+    'Content-Type': 'image/jpeg',
+    'Access-Control-Allow-Origin': '*',
+  });
+});
+
 app.onError((error, c) => {
   if (error instanceof z.ZodError) {
     return c.json({ error: error.issues }, 400);
