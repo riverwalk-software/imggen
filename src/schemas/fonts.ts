@@ -27,6 +27,6 @@ export const GoogleFontsResponseBodySchema = z.object({
 			family: z.string(),
 			variants: z.array(FontVariantSchema),
 			files: z.record(FontVariantSchema, z.string().url()),
-		})
+		}),
 	),
 });

@@ -9,9 +9,8 @@ export default async function (
 	fontFamily: string,
 	fontVariant: string,
 	googleFontsApiKey: string,
-	markup: ReactNode
+	markup: ReactNode,
 ): Promise<string> {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const fontFamiliesResponse = await fetch(`https://www.googleapis.com/webfonts/v1/webfonts?key=${googleFontsApiKey}`);
 	if (!fontFamiliesResponse.ok) {
 		throw new HTTPException(500, { message: 'Failed to fetch font list' });
