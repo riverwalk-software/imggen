@@ -2,6 +2,14 @@ import { ReactNode } from 'satori';
 import { ArticleLayoutSchema1 } from '../schemas/layouts';
 import { z } from 'zod';
 
+const buildMetadata = (metadata1: string | undefined, metadata2: string | undefined, metadata3: string | undefined) => {
+  if (!metadata1 && !metadata2 && !metadata3) {
+    return null;
+  }
+
+  return [metadata1, metadata2, metadata3].filter((metadata) => metadata !== undefined).join(' • ');
+}
+
 export default ({
   authorImage,
   authorName,
@@ -144,7 +152,7 @@ export default ({
 
     <div
       style={{
-        height: '50%',
+        height: '100%',
         width: '50%',
         display: 'flex',
         flexDirection: 'column',
@@ -165,14 +173,14 @@ export default ({
         <span style={{ fontSize: '20px' }}>{authorName}</span>
       </div>
       <div style={{ fontSize: 48, fontWeight: 600 }}>{title}</div>
-      <div
+      {buildMetadata(metadata1, metadata2, metadata3) && <div
         style={{
           fontSize: 20,
           fontWeight: 0,
         }}
       >
-        {`${metadata1} · ${metadata2} · ${metadata3}`}
-      </div>
+        {buildMetadata(metadata1, metadata2, metadata3)}
+      </div>}
       <div
         style={{
           display: 'flex',
