@@ -5,6 +5,7 @@ import { z } from 'zod';
 export default ({
 	authorImage,
 	authorName,
+	logo,
 	metadata1,
 	metadata2,
 	metadata3,
@@ -25,7 +26,7 @@ export default ({
 			gap: '4em',
 		}}
 	>
-		<svg width="10em" height="10em" aria-hidden="true" class="h-48 w-full md:h-64" slot="logo" data-icon="companies/rock-the-jvm">
+		<svg width="20em" height="20em" aria-hidden="true" class="h-48 w-full md:h-64" slot="logo" data-icon="companies/rock-the-jvm">
 			{' '}
 			<symbol id="ai:local:companies/rock-the-jvm" viewBox="0 0 1024 1024">
 				<path
@@ -149,7 +150,7 @@ export default ({
 				flexDirection: 'column',
 				alignItems: 'flex-start',
 				justifyContent: 'center',
-				gap: '0.5em',
+				gap: '1em',
 			}}
 		>
 			<div
@@ -160,23 +161,24 @@ export default ({
 					alignItems: 'center',
 				}}
 			>
-				<img style={{ width: '2em' }} src={authorImage} />
-				<span>{authorName}</span>
+				<img style={{ width: '4em' }} src={authorImage} />
+				<span style={{ fontSize: '20px' }}>{authorName}</span>
 			</div>
-			<div style={{ fontSize: 32, fontWeight: 600 }}>{title}</div>
+			<div style={{ fontSize: 48, fontWeight: 600 }}>{title}</div>
 			<div
 				style={{
-					fontSize: 16,
+					fontSize: 20,
 					fontWeight: 0,
 				}}
 			>
-				{metadata1} · {metadata2} · {metadata3}
+				{`${metadata1} · ${metadata2} · ${metadata3}`}
 			</div>
 			<div
 				style={{
 					display: 'flex',
 					flexDirection: 'row',
 					gap: '0.5em',
+					fontSize: '24px',
 				}}
 			>
 				<div style={{ backgroundColor: '#e0e8ff', padding: '5px 10px 5px 10px', borderRadius: '15px' }}>{tag1}</div>

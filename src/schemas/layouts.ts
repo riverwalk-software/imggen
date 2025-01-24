@@ -8,6 +8,7 @@ export const ArticleLayoutSchema1 = z.object({
 		.object({
 			authorImage: z.string().url(),
 			authorName: z.string(),
+			logo: z.string().url(),
 			metadata1: z.string(),
 			metadata2: z.string(),
 			metadata3: z.string(),
