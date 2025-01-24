@@ -23,7 +23,6 @@ app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
 	});
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	const markup = createMarkup(parsedQueryParamaters);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
 	const vector = await markupToVector(configuration, fontFamily, fontVariant, c.env.GOOGLE_FONTS, markup);
 	const raster = vectorToRaster(vector);
 	return c.body(raster, 200, {
