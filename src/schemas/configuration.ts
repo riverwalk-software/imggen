@@ -1,7 +1,7 @@
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 
-export const ConfigurationSchema = z.enum(['squareAdvertisement', 'verticalAdvertisement', 'banner', 'og', 'twitter', 'thumbnail', 'litest']);
+export const ConfigurationSchema = z.enum(['squareAdvertisement', 'verticalAdvertisement', 'banner', 'og', 'twitter', 'thumbnail']);
 type Configuration = z.infer<typeof ConfigurationSchema>;
 interface ImageResolution {
   width: number;
@@ -21,8 +21,6 @@ export function configurationToImageResolution(configuration: Configuration): Im
       return { width: 1200, height: 675 };
     case 'thumbnail':
       return { width: 1500, height: 500 };
-    case 'litest':
-      return { width: 1600, height: 400 };
     default:
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw new HTTPException(500, { message: `Unsupported configuration: ${configuration}` });
