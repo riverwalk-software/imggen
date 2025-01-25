@@ -10,7 +10,7 @@ import { QueryParametersSchema } from './schemas/queryParameters';
 import { HTTPException } from 'hono/http-exception';
 import { LayoutSchema } from './schemas/layouts';
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Bindings }>().basePath('/api/snapgen');
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 await initWasm(wasmModule);
 
