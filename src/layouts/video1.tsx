@@ -15,7 +15,7 @@ export default ({
   backgroundOpacity,
 }: z.infer<typeof VideoLayoutSchema1>['data']): ReactNode => (
   <div style={{ width: "1280px", height: "720px", display: "flex", backgroundSize: "cover", position: "relative" }}>
-    {/* <div style={{ position: "absolute", zIndex: -10, width: "100%", height: "100%", filter: "blur(4px)", backgroundImage: `url(${backgroundImage})` }}></div> */}
+    <div style={{ position: "absolute", zIndex: -10, width: "100%", height: "100%", filter: "blur(4px)", backgroundImage: `url(${backgroundImage})` }}></div>
     {/* {backgroundColor && backgroundOpacity && <div style={{ position: "absolute", zIndex: -10, width: "100%", height: "100%", filter: "blur(4px)", backgroundColor: backgroundColor, opacity: backgroundOpacity }}></div>}
     {gradient && <div style={{
       position: "absolute", zIndex: -5, width: "100%", height: "100%", filter: "blur(4px)",
@@ -32,12 +32,12 @@ export default ({
         gap: '4em',
       }}
     >
-      {/* <div style={{
+      <div style={{
         height: "100%",
         width: "50%",
         display: "flex",
         alignItems: "flex-end"
-      }}><img src={mainImage} width="100%" height="100%" style={{ width: '100%', maxHeight: '100%', bottom: '0', transform: 'translateY(1%)', }} /></div> */}
+      }}><img src={mainImage} width="100%" height="100%" style={{ width: '100%', maxHeight: '100%', bottom: '0', transform: 'translateY(1%)', }} /></div>
 
 
       <div
