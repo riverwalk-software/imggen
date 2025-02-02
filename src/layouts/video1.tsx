@@ -32,12 +32,12 @@ export default ({
         gap: '4em',
       }}
     >
-      <div style={{
+      {/* <div style={{
         height: "100%",
         width: "50%",
         display: "flex",
         alignItems: "flex-end"
-      }}><img src={mainImage} width="100%" height="100%" style={{ width: '100%', maxHeight: '100%', bottom: '0', transform: 'translateY(1%)', }} /></div>
+      }}><img src={mainImage} width="100%" height="100%" style={{ width: '100%', maxHeight: '100%', bottom: '0', transform: 'translateY(1%)', }} /></div> */}
 
 
       <div
