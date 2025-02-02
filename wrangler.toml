@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 assets = { directory = "public" }
 
 [limits]
-cpu_ms = 1500
+cpu_ms = 3000
 
 # Workers Logs
 # Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
