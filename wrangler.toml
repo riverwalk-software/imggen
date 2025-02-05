@@ -4,9 +4,11 @@ main = "src/index.ts"
 compatibility_date = "2024-12-05"
 compatibility_flags = ["nodejs_compat"]
 assets = { directory = "public" }
+usage_model = "unbound"
 
 [limits]
 cpu_ms = 3000
+usage_model = "unbound"
 
 # Workers Logs
 # Docs: https://developers.cloudflare.com/workers/observability/logs/workers-logs/
