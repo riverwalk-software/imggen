@@ -29,6 +29,7 @@ export const VideoLayoutSchema1 = z.object({
       mainImage: z.string().url(),
       mainText: z.string().max(30),
       mainTextColor: z.string().optional(),
+      flipped: z.string().optional(), // z.string().optional().transform((value) => value === 'true'),
       secondaryText: z.string().max(15),
       secondaryTextColor: z.string().optional(),
       backgroundImage: z.string().url(),

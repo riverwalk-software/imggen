@@ -9,6 +9,7 @@ export default ({
   mainImage,
   mainText,
   mainTextColor = "white",
+  flipped = false,
   secondaryText,
   secondaryTextColor = "red",
   backgroundImage,
@@ -26,7 +27,8 @@ export default ({
     <div
       style={{
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: flipped ? "row-reverse" : "row",
+        // flexDirection: 'row',
         height: '100%',
         width: '100%',
         alignItems: 'center',
@@ -38,7 +40,7 @@ export default ({
         height: "100%",
         width: "50%",
         display: "flex",
-        alignItems: "flex-end"
+        alignItems: flipped ? "flex-start" : "flex-end"
       }}><img src={mainImage} width="100%" height="100%" style={{ width: '100%', maxHeight: '100%', bottom: '0', transform: 'translateY(1%)', }} /></div>
 
 
@@ -48,7 +50,7 @@ export default ({
           width: '50%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-start',
+          alignItems: flipped ? "flex-end" : 'flex-start',
           justifyContent: 'center',
           gap: '0',
           lineHeight: "",
