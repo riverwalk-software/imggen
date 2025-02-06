@@ -8,7 +8,9 @@ const buildMetadata = (metadata1: string | undefined, metadata2: string | undefi
 export default ({
   mainImage,
   mainText,
+  mainTextColor = "white",
   secondaryText,
+  secondaryTextColor = "red",
   backgroundImage,
   gradient,
   backgroundColor,
@@ -53,8 +55,8 @@ export default ({
           fontSize: 100, fontWeight: 600, color: "white"
         }}
       >
-        <p>{mainText}</p>
-        <p style={{ color: "red", fontSize: "120" }}>{secondaryText}</p>
+        <p style={{ color: mainTextColor }}>{mainText}</p>
+        <p style={{ color: secondaryTextColor, fontSize: "120" }}>{secondaryText}</p>
       </div>
     </div>
   </div>

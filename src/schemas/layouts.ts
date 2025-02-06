@@ -28,7 +28,9 @@ export const VideoLayoutSchema1 = z.object({
     .object({
       mainImage: z.string().url(),
       mainText: z.string().max(30),
+      mainTextColor: z.string().optional(),
       secondaryText: z.string().max(15),
+      secondaryTextColor: z.string().optional(),
       backgroundImage: z.string().url(),
       gradient: z.string().optional(),
       backgroundColor: z.string().optional(),
