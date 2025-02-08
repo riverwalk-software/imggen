@@ -40,8 +40,25 @@ export const VideoLayoutSchema1 = z.object({
     .partial(),
 });
 
+export const VideoLayoutSchema2 = z.object({
+  discriminator: z.literal(`${layoutKeys.enum.video}2`),
+  data: z
+    .object({
+      mainImage: z.string().url(),
+      secondaryImage: z.string().url(),
+      mainText: z.string().max(30),
+      mainTextColor: z.string().optional(),
+      mainTextBackgroundColor: z.string().optional(),
+      backgroundImage: z.string().url(),
+      backgroundColor: z.string().optional(),
+      backgroundOpacity: z.string().optional(),
+    })
+    .partial(),
+});
+
 const VideoLayoutSchemas = [
   VideoLayoutSchema1,
+  VideoLayoutSchema2,
 ] as const;
 
 export const LayoutSchema = z.discriminatedUnion('discriminator', [...ArticleLayoutSchemas, ...VideoLayoutSchemas]);

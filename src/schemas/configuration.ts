@@ -1,7 +1,7 @@
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
 
-export const ConfigurationSchema = z.enum(['squareAdvertisement', 'verticalAdvertisement', 'banner', 'og', 'twitter', 'thumbnail']);
+export const ConfigurationSchema = z.enum(['squareAdvertisement', 'verticalAdvertisement', 'banner', 'video', 'og', 'twitter', 'thumbnail']);
 type Configuration = z.infer<typeof ConfigurationSchema>;
 interface ImageResolution {
   width: number;
@@ -19,6 +19,8 @@ export function configurationToImageResolution(configuration: Configuration): Im
       return { width: 1200, height: 630 };
     case 'twitter':
       return { width: 1200, height: 675 };
+    case 'video':
+      return { width: 1280, height: 720 };
     case 'thumbnail':
       return { width: 1500, height: 500 };
     default:

@@ -15,16 +15,25 @@ const app = new Hono<{ Bindings: Bindings }>().basePath('/api/snapgen');
 await initWasm(wasmModule);
 
 app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
+  console.log("tesing 1");
   const queryParameters = c.req.valid('query');
   const { configuration, fontFamily, fontVariant, layout, layoutIndex } = queryParameters;
   const parsedQueryParamaters = LayoutSchema.parse({
     discriminator: `${layout}${layoutIndex.toString()}`,
     data: queryParameters,
   });
+  console.log("tesing 2");
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const markup = createMarkup(parsedQueryParamaters);
+  console.log("tesing 3");
+
   const vector = await markupToVector(configuration, fontFamily, fontVariant, c.env.GOOGLE_FONTS, markup);
+  console.log("tesing 4");
+
   const raster = vectorToRaster(vector);
+  console.log("tesing 5");
+
   return c.body(raster, 200, {
     'Content-Type': 'image/png',
     'Access-Control-Allow-Origin': '*',

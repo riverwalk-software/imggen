@@ -17,7 +17,7 @@ export default ({
   backgroundColor,
   backgroundOpacity,
 }: z.infer<typeof VideoLayoutSchema1>['data']): ReactNode => (
-  <div style={{ width: "1280px", height: "720px", display: "flex", backgroundSize: "cover", position: "relative" }}>
+  <div style={{ height: '100%', width: '100%', display: "flex", backgroundSize: "cover", position: "relative" }}>
     <div style={{ position: "absolute", width: "100%", height: "100%", filter: "blur(4px)", backgroundImage: `url(${backgroundImage})` }}></div>
     {backgroundColor && backgroundOpacity && <div style={{ position: "absolute", width: "100%", height: "100%", filter: "blur(4px)", backgroundColor: backgroundColor, opacity: backgroundOpacity }}></div>}
     {gradient && <div style={{
