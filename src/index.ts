@@ -9,6 +9,8 @@ import { zValidator } from '@hono/zod-validator';
 import { QueryParametersSchema } from './schemas/queryParameters';
 import { HTTPException } from 'hono/http-exception';
 import { LayoutSchema } from './schemas/layouts';
+import extractImageLayers from './lib/extractImageLayers';
+import joinImages from './lib/joinImages';
 
 const app = new Hono<{ Bindings: Bindings }>().basePath('/api/snapgen');
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -34,7 +36,10 @@ app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
   const raster = vectorToRaster(vector);
   console.log("tesing 5");
 
-  return c.body(raster, 200, {
+  const imageLayers = extractImageLayers(parsedQueryParamaters);
+  const finalImage = await joinImages([...imageLayers, Buffer.from(raster)]);
+
+  return c.body(finalImage, 200, {
     'Content-Type': 'image/png',
     'Access-Control-Allow-Origin': '*',
   });
