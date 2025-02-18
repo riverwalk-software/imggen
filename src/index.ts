@@ -10,6 +10,10 @@ import { QueryParametersSchema } from './schemas/queryParameters';
 import { HTTPException } from 'hono/http-exception';
 import { LayoutSchema } from './schemas/layouts';
 
+export interface Env {
+  IMAGE_QUEUE_PUBLISH: Queue<any>;
+}
+
 const app = new Hono<{ Bindings: Bindings }>().basePath('/api/snapgen');
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 await initWasm(wasmModule);
@@ -36,6 +40,27 @@ app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
 
   return c.body(raster, 200, {
     'Content-Type': 'image/png',
+    'Access-Control-Allow-Origin': '*',
+  });
+});
+
+app.post('/', zValidator('query', QueryParametersSchema), async (c) => {
+  const queryParameters = c.req.valid('query');
+  const { configuration, fontFamily, fontVariant, layout, layoutIndex } = queryParameters;
+  const parsedQueryParamaters = LayoutSchema.parse({
+    discriminator: `${layout}${layoutIndex.toString()}`,
+    data: queryParameters,
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const markup = createMarkup(parsedQueryParamaters);
+
+  const vector = await markupToVector(configuration, fontFamily, fontVariant, c.env.GOOGLE_FONTS, markup);
+
+  // await c.env.IMAGE_QUEUE_PUBLISH.send({ userData: { username: "wkenned1" }, imageMetadata: parsedQueryParamaters, image: vector });
+
+  return c.body(vector, 200, {
+    'Content-Type': 'image/svg+xml',
     'Access-Control-Allow-Origin': '*',
   });
 });
