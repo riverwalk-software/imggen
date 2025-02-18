@@ -1,0 +1,38 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/base:1-ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/git-lfs:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "-dbaeumer.vscode-eslint",
+        "christian-kohler.npm-intellisense",
+        "christian-kohler.path-intellisense",
+        "eamodio.gitlens",
+        "EditorConfig.EditorConfig",
+        "GitHub.copilot",
+        "github.vscode-github-actions",
+        "GitHub.vscode-pull-request-github",
+        "ms-vsliveshare.vsliveshare",
+        "redhat.vscode-yaml",
+        "remcohaszing.schemastore",
+        "tamasfe.even-better-toml",
+        "unifiedjs.vscode-mdx",
+      ]
+    }
+  },
+  "updateContentCommand": "pnpm install --frozen-lockfile",
+  "postAttachCommand": "npm run dev",
+  "forwardPorts": [
+    3001
+  ],
+  "portsAttributes": {
+    "3001": {
+      "label": "Image Gen Publisher",
+    }
+  }
+}
