@@ -120,6 +120,10 @@ app.post('/', zValidator('query', QueryParametersSchema), async (c) => {
 
   // const obj = c.env.SVG_CACHE.get(imageId);
 
+  if (!c.env.SVG_BUCKET) {
+    console.error("SVG_BUCKET is not defined in the environment");
+  }
+
   await c.env.SVG_BUCKET.put(imageKey, vector);
 
   console.log("working3");
@@ -148,15 +152,27 @@ app.get('/image', async (c) => {
 
   const body = await response.json();
 
+  console.log("PULL RESPONSE");
+  console.log(body)
+
   if (body.result.messages.length === 0) {
     return c.json({ error: 'No messages' }, 404);
   }
 
   const message = JSON.parse(body.result.messages[0].body);
 
+  console.log(message)
+
   const imageKey = message.imageKey;
 
-  return c.body(await c.env.PNG_BUCKET.get(imageKey), 200, {
+  const image = await c.env.PNG_BUCKET.get(imageKey);
+  const imageBinary = await streamToUint8Array(image.body);
+
+  console.log(imageBinary);
+
+  console.log(`IMAGE SIZE: ${imageBinary.byteLength}`)
+
+  return c.body(imageBinary, 200, {
     'Content-Type': 'image/png',
     'Access-Control-Allow-Origin': '*',
   });
@@ -174,6 +190,32 @@ app.onError((error, c) => {
   }
 });
 
+async function streamToUint8Array(stream: ReadableStream): Promise<Uint8Array> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+
+  let done = false;
+  while (!done) {
+    const { value, done: readerDone } = await reader.read();
+    if (value) {
+      chunks.push(value);
+    }
+    done = readerDone;
+  }
+
+  // Merge all chunks into a single Uint8Array
+  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return result;
+}
+
 export default {
   fetch: app.fetch,
   async queue(batch: MessageBatch<any>, env: Environment) {
@@ -187,22 +229,27 @@ export default {
     // const image = await obj.getImage();
     const image = await env.SVG_BUCKET.get(body.imageKey);
 
-    console.log("TESIING 1")
+    // console.log("TESIING 1")
+    // console.log(image);
 
-    const encoder = new TextEncoder();
-    const imageData = encoder.encode(image);
+    // const encoder = new TextEncoder();
+    // const imageData = encoder.encode(image);
 
     console.log("TESIING 2")
 
     try {
-      console.log(imageData);
+      // console.log(imageData.byteLength);
 
-      const response = await fetch("http://localhost:3000/", {
+      const response = await fetch("https://snapgen.media/png/", {
         method: "POST",
         headers: {
-          "Content-Type": "application/octet-stream", // Change if needed (e.g., "image/png")
+          "Accept": "*/*",
+          "Connection": "keep-alive",
+          "Content-Type": "image/svg+xml", // Change if needed (e.g., "image/png")
+          "CF-Worker": "true",
+          "User-Agent": "SnapGen/1.0 (Cloudflare Worker; +https://staticpress.host)"
         },
-        body: imageData, // Send the raw binary data
+        body: await streamToUint8Array(image.body), // Send the raw binary data
       });
 
       console.log(`RESPONSE: ${response.status} ${response.statusText}`);
@@ -215,11 +262,22 @@ export default {
       // const pngId = env.PNG_CACHE.idFromName(pngKey);
       // const pngObj = env.PNG_CACHE.get(pngId);
       // const png = await pngObj.setImage(new Uint8Array(await response.arrayBuffer()));
+      const pngBody = await response.arrayBuffer();
+      console.log(pngBody);
 
-      await env.PNG_BUCKET.put(body.imageKey, new Uint8Array(await response.arrayBuffer()));
+      // console.log(`PNG size: ${pngBody.byteLength}`);
+
+      if (!env.PNG_BUCKET) {
+        console.error("SVG_BUCKET is not defined in the environment");
+      }
+
+      const res = await env.PNG_BUCKET.put(body.imageKey, pngBody, {
+        httpMetadata: { contentType: "image/png" },
+      });
+
+      console.log(`RES: ${res}`);
 
       console.log("TESIING 4")
-
 
       await env.PNG_QUEUE_PUBLISH.send({ userData: { username: "wkenned1" }, imageMetadata: body.imageMetadata, imageKey: body.imageKey });
 

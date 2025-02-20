@@ -110,21 +110,23 @@ queue = "png-queue"
 queue = "image-queue"
 max_batch_size = 1
 
-[[queues.consumers]]
-queue = "png-queue"
-type = "http_pull"
-visibility_timeout_ms = 5000
-max_retries = 5
+# [[queues.consumers]]
+# queue = "png-queue"
+# type = "http_pull"
+# visibility_timeout_ms = 5000
+# max_retries = 5
 
 # Bind an R2 Bucket. Use R2 to store arbitrarily large blobs of data, such as files.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#r2-buckets
 [[r2_buckets]]
 binding = "SVG_BUCKET"
 bucket_name = "svg-store"
+preview_bucket_name = "svg-store-dev"
 
 [[r2_buckets]]
 binding = "PNG_BUCKET"
 bucket_name = "png-store"
+preview_bucket_name = "png-store-dev"
 
 # Bind another Worker service. Use this binding to call another Worker without network overhead.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
