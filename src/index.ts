@@ -162,3 +162,12 @@ export default {
     await env.PNG_QUEUE_PUBLISH.send(body);
   },
 }
+
+/*
+
+Testing:
+
+POST https://staticpress.host/api/snapgen?authorImage=https%3A%2F%2Frockthejvm.com%2F_astro%2Fdaniel-ciocirlan.BPZFON2k.jpeg&authorName=Daniel%20Cioc%C3%AErlan&logo=https%3A%2F%2Frockthejvm.com%2Flogos%2Frtjvm.png&metadata1=10%20min%20read&metadata2=Feb%201%2C%202025&metadata3=Explanation&tag1=scala&tag2=scala-3&tag3=metaprogramming&title=Scala%203%20Inlines%20Explained&fontFamily=Roboto&fontVariant=regular&layout=article&layoutIndex=1&configuration=og
+GET https://staticpress.host/api/snapgen/image
+
+*/
