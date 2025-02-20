@@ -63,14 +63,18 @@ enabled = true
 # Durable Objects can live for as long as needed. Use these when you need a long-running "server", such as in realtime apps.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#durable-objects
 # [[durable_objects.bindings]]
-# name = "MY_DURABLE_OBJECT"
-# class_name = "MyDurableObject"
+# name = "SVG_CACHE"
+# class_name = "StoredImage"
+
+# [[durable_objects.bindings]]
+# name = "PNG_CACHE"
+# class_name = "StoredPng"
 
 # Durable Object migrations.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#migrations
 # [[migrations]]
 # tag = "v1"
-# new_classes = ["MyDurableObject"]
+# new_classes = ["StoredImage", "StoredPng"]
 
 # Bind a Hyperdrive configuration. Use to accelerate access to your existing databases from Cloudflare Workers.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#hyperdrive
@@ -92,20 +96,37 @@ enabled = true
 
 # Bind a Queue producer. Use this binding to schedule an arbitrary task that may be processed later by a Queue consumer.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues
-# [[queues.producers]]
-# binding = "MY_QUEUE"
-# queue = "my-queue"
+[[queues.producers]]
+binding = "IMAGE_QUEUE_PUBLISH"
+queue = "image-queue"
+
+[[queues.producers]]
+binding = "PNG_QUEUE_PUBLISH"
+queue = "png-queue"
 
 # Bind a Queue consumer. Queue Consumers can retrieve tasks scheduled by Producers to act on them.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues
+[[queues.consumers]]
+queue = "image-queue"
+max_batch_size = 1
+
 # [[queues.consumers]]
-# queue = "my-queue"
+# queue = "png-queue"
+# type = "http_pull"
+# visibility_timeout_ms = 5000
+# max_retries = 5
 
 # Bind an R2 Bucket. Use R2 to store arbitrarily large blobs of data, such as files.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#r2-buckets
-# [[r2_buckets]]
-# binding = "MY_BUCKET"
-# bucket_name = "my-bucket"
+[[r2_buckets]]
+binding = "SVG_BUCKET"
+bucket_name = "svg-store"
+preview_bucket_name = "svg-store-dev"
+
+[[r2_buckets]]
+binding = "PNG_BUCKET"
+bucket_name = "png-store"
+preview_bucket_name = "png-store-dev"
 
 # Bind another Worker service. Use this binding to call another Worker without network overhead.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
