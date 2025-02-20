@@ -10,6 +10,9 @@ import { QueryParametersSchema } from './schemas/queryParameters';
 import { HTTPException } from 'hono/http-exception';
 import { LayoutSchema } from './schemas/layouts';
 import { DurableObject } from "cloudflare:workers";
+import streamToUint8Array from './lib/streamToUint8Array';
+import { ImageMessageSchema } from './schemas/imageMessage';
+import { PullConsumerMessageSchema } from './schemas/pullConsumerMessage';
 
 export interface Env {
   IMAGE_QUEUE_PUBLISH: Queue<any>;
@@ -20,7 +23,6 @@ const app = new Hono<{ Bindings: Bindings }>().basePath('/api/snapgen');
 await initWasm(wasmModule);
 
 app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
-  console.log("tesing 1");
   const queryParameters = c.req.valid('query');
   const { configuration, fontFamily, fontVariant, layout, layoutIndex } = queryParameters;
   const parsedQueryParamaters = LayoutSchema.parse({
@@ -64,7 +66,9 @@ app.post('/', zValidator('query', QueryParametersSchema), async (c) => {
 
   await c.env.SVG_BUCKET.put(imageKey, vector);
 
-  await c.env.IMAGE_QUEUE_PUBLISH.send({ userData: { username: "wkenned1" }, imageMetadata: parsedQueryParamaters, imageKey: imageKey });
+  const imageMessage: z.infer<typeof ImageMessageSchema> = { userData: { userId: "wkenned1" }, imageMetadata: parsedQueryParamaters, imageKey: imageKey };
+
+  await c.env.IMAGE_QUEUE_PUBLISH.send(imageMessage);
 
   return c.body(vector, 200, {
     'Content-Type': 'image/svg+xml',
@@ -80,19 +84,25 @@ app.get('/image', async (c) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      visibility_timeout_ms: 6000, batch_size: 50
+      visibility_timeout_ms: 6000, batch_size: 1
     }),
   });
 
-  const body = await response.json();
+  const bodyJson = await response.json();
+
+  const body = PullConsumerMessageSchema.parse(bodyJson);
 
   if (body.result.messages.length === 0) {
     return c.json({ error: 'No messages' }, 404);
   }
 
-  const message = JSON.parse(body.result.messages[0].body);
+  const message = body.result.messages[0].body;
 
   const imageKey = message.imageKey;
+
+  if (!c.env.PNG_BUCKET) {
+    console.error("PNG_BUCKET is not defined in the environment");
+  }
 
   const image = await c.env.PNG_BUCKET.get(imageKey);
   const imageBinary = await streamToUint8Array(image.body);
@@ -115,37 +125,11 @@ app.onError((error, c) => {
   }
 });
 
-async function streamToUint8Array(stream: ReadableStream): Promise<Uint8Array> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-
-  let done = false;
-  while (!done) {
-    const { value, done: readerDone } = await reader.read();
-    if (value) {
-      chunks.push(value);
-    }
-    done = readerDone;
-  }
-
-  // Merge all chunks into a single Uint8Array
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return result;
-}
-
 export default {
   fetch: app.fetch,
   async queue(batch: MessageBatch<any>, env: Environment) {
     console.log(`MESSAGE: ${JSON.stringify(batch.messages[0].body)}`);
-    const body = batch.messages[0].body;
+    const body = ImageMessageSchema.parse(batch.messages[0].body);
 
     if (!env.SVG_BUCKET) {
       console.error("PNG_BUCKET is not defined in the environment");
@@ -175,6 +159,6 @@ export default {
       httpMetadata: { contentType: "image/png" },
     });
 
-    await env.PNG_QUEUE_PUBLISH.send({ userData: { username: "wkenned1" }, imageMetadata: body.imageMetadata, imageKey: body.imageKey });
+    await env.PNG_QUEUE_PUBLISH.send(body);
   },
 }
