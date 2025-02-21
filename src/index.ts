@@ -13,9 +13,158 @@ import { DurableObject } from "cloudflare:workers";
 import streamToUint8Array from './lib/streamToUint8Array';
 import { ImageMessageSchema } from './schemas/imageMessage';
 import { PullConsumerMessageSchema } from './schemas/pullConsumerMessage';
+import { WorkflowEntrypoint, WorkflowEvent, WorkflowStep } from "cloudflare:workers";
+import { env } from 'hono/adapter';
 
 export interface Env {
+  WORKFLOW_KV_STORE: any;
+  GOOGLE_FONTS(configuration: string, fontFamily: string, fontVariant: string, GOOGLE_FONTS: any, markup: ReactNode): unknown;
+  SVG_BUCKET: R2Bucket;
+  PNG_BUCKET: R2Bucket;
+  PNG_QUEUE_PUBLISH: Queue<any>;
   IMAGE_QUEUE_PUBLISH: Queue<any>;
+}
+
+export class WorkflowKVStore extends DurableObject {
+  constructor(private state: DurableObjectState, public env: Env) {
+    super(state, env);
+    console.log("WorkflowKVStore created");
+  }
+
+  async put(key: string, value: string) {
+    console.log("PUT")
+    await this.state.storage.put(key, value);
+    return `Stored value for key: ${key}`;
+  }
+
+  // Method to retrieve a value
+  async get(key: string) {
+  console.log("GET")
+    const value = await this.state.storage.get(key);
+    if (value === undefined) {
+      return undefined;
+    }
+    return value;
+  }
+
+  // Method to delete a value
+  async delete(key: string) {
+    await this.state.storage.delete(key);
+    return `Deleted key: ${key}`;
+  }
+}
+
+export type WorkflowEvent<T> = {
+  payload: Readonly<T>;
+  timestamp: Date;
+  instanceId: string;
+};
+
+type Params = { queryParameters: z.infer<typeof QueryParametersSchema>, url: string};
+
+// Create your own class that implements a Workflow
+export class ImageGenWorkflow extends WorkflowEntrypoint<Env, Params> {
+  // Define a run() method
+  async run(event: Readonly<WorkflowEvent<Params>>, step: WorkflowStep) {
+    // Define one or more steps that optionally return state.
+    // let state = step.do("my first step", async () => {
+    //   await event.payload.env.IMAGE_GENERATION_WORKFLOWS.put(event.payload.imageKey, event.instanceId);
+    // });
+
+    const { userId, imageKey } = await step.do("Preprocessing", async (): Promise<{ userId: string; imageKey: string }> => {
+      return { userId, imageKey: `${userId}:${event.payload.url.split('?')[1]}`};
+    });
+
+    await step.do("Store workflow ID", async () => {
+      const id = this.env.WORKFLOW_KV_STORE.idFromName(imageKey);
+      const stub = this.env.WORKFLOW_KV_STORE.get(id);
+
+      if (await stub.get(imageKey)) {
+        const error = "Image already exists.";
+        console.error('An error occurred:', error);
+        throw error;
+      }
+
+      await stub.put(imageKey, event.instanceId);
+    });
+
+    const { imageMessage, vector } = await step.do("createVector", async () => {
+      console.log("Create vector");
+
+      const { configuration, fontFamily, fontVariant, layout, layoutIndex } = event.payload.queryParameters;
+      const parsedQueryParamaters = LayoutSchema.parse({
+        discriminator: `${layout}${layoutIndex.toString()}`,
+        data: event.payload.queryParameters,
+      });
+
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const markup = createMarkup(parsedQueryParamaters);
+      const vector = await markupToVector(configuration, fontFamily, fontVariant, env.GOOGLE_FONTS, markup);
+      const imageMessage: z.infer<typeof ImageMessageSchema> = { userData: { userId: "wkenned1" }, imageMetadata: parsedQueryParamaters, imageKey: imageKey };
+
+      return { imageMessage, vector };
+    });
+
+    await step.do("Cache svg", async () => {
+      if (!this.env.SVG_BUCKET) {
+        console.error("SVG_BUCKET is not defined in the environment");
+      }
+
+      await this.env.SVG_BUCKET.put(imageMessage.imageKey, vector);
+
+      console.log("Cached svg");
+    });
+
+    const png = await step.do("createPng", async () => {
+      console.log("Create png");
+      if (!env.SVG_BUCKET) {
+        console.error("PNG_BUCKET is not defined in the environment");
+      }
+
+      const encoder = new TextEncoder();
+
+      // const image = await event.payload.env.SVG_BUCKET.get(imageMessage.imageKey);
+
+      const response = await fetch("https://snapgen.media/png/", {
+        method: "POST",
+        headers: {
+          "Accept": "*/*",
+          "Connection": "keep-alive",
+          "Content-Type": "image/svg+xml",
+          "CF-Worker": "true",
+          "User-Agent": "SnapGen/1.0 (Cloudflare Worker; +https://staticpress.host)"
+        },
+        body: encoder.encode(vector),
+      });
+
+      if (!env.PNG_BUCKET) {
+        console.error("PNG_BUCKET is not defined in the environment");
+      }
+
+      const pngBody = await response.arrayBuffer();
+
+      return pngBody;
+    });
+
+    await step.do("Cache png", async () => {
+      if (!this.env.PNG_BUCKET) {
+        console.error("PNG_BUCKET is not defined in the environment");
+      }
+
+      await this.env.PNG_BUCKET.put(imageMessage.imageKey, png, {
+        httpMetadata: { contentType: "image/png" },
+      });
+
+      console.log("Cached png");
+    });
+
+    await step.do("Publish png", async () => {
+      await env.PNG_QUEUE_PUBLISH.send(imageMessage);
+      console.log("Published png");
+    });
+
+  }
 }
 
 const app = new Hono<{ Bindings: Bindings }>().basePath('/api/snapgen');
@@ -44,9 +193,24 @@ app.get('/', zValidator('query', QueryParametersSchema), async (c) => {
 });
 
 app.post('/', zValidator('query', QueryParametersSchema), async (c) => {
-  const userId = "wkenend1";
-
   const queryParameters = c.req.valid('query');
+
+  console.log("working1")
+
+  if (!c.env.IMAGE_GENERATION_WORKFLOWS) {
+    console.error("IMAGE_GENERATION_WORKFLOWS is not defined in the environment");
+  }
+  console.log("working2")
+
+  const params: Params = { queryParameters: queryParameters, url: c.req.url.toString()};
+
+  console.log(params);
+
+  const instance = await c.env.IMAGE_GEN_WORKFLOW.create({params});
+
+  return c.text('OK');
+
+  const userId = "wkenend1";
   const { configuration, fontFamily, fontVariant, layout, layoutIndex } = queryParameters;
   const parsedQueryParamaters = LayoutSchema.parse({
     discriminator: `${layout}${layoutIndex.toString()}`,
